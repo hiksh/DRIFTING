@@ -1,0 +1,10 @@
+model,class,ks_mean,ks_max,ks_p90,corr_frob
+CTGAN,bot,0.3604,0.8412,0.5914,29.6698
+CTGAN,brute_force,0.3124,0.791,0.6658,30.4937
+CTGAN,xss,0.3655,0.8716,0.7798,29.4991
+TabDDPM,bot,0.3501,0.5559,0.5368,29.1633
+TabDDPM,brute_force,0.4811,0.7185,0.5914,18.708
+TabDDPM,xss,0.4806,0.6009,0.5713,26.2409
+Drifting,bot,0.7013,0.9485,0.9177,61.0487
+Drifting,brute_force,0.7397,0.9068,0.9058,41.1125
+Drifting,xss,0.6319,0.9679,0.9587,54.2108

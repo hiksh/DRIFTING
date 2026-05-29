@@ -1,0 +1,67 @@
+# ── Python ─────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+env/
+venv/
+*.egg-info/
+dist/
+build/
+
+# ── Jupyter ─────────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ── Data — raw CSVs (large, re-downloadable via cicids2017/download.py) ─────────
+cicids2017/*.csv
+cicids2017/train
+cicids2017/test
+cicids2017/header
+cicids2017/labels
+
+# ── Data — processed arrays (reproducible from 02_preprocess.py) ────────────────
+data/processed/*.npy
+data/processed/*.pkl
+
+# Keep metadata CSVs (small, human-readable)
+!data/processed/feature_names.csv
+!data/processed/zero_variance_features.csv
+
+# ── Outputs — large binary files ────────────────────────────────────────────────
+# Synthetic sample arrays (reproducible from generation scripts)
+outputs/ctgan/X_synth_*.npy
+outputs/tabddpm/X_synth_*.npy
+outputs/drifting/X_synth_*.npy
+outputs/ratio_experiment/
+
+# Training loss traces
+outputs/tabddpm/tabddpm_loss_*.npy
+outputs/drifting/drifting_loss_*.npy
+
+# ── Outputs — keep results (small CSVs + plots + timing logs) ───────────────────
+!outputs/ctgan/timing_log.json
+!outputs/ctgan/timing_summary.csv
+!outputs/tabddpm/timing_log.json
+!outputs/tabddpm/timing_summary.csv
+!outputs/drifting/timing_log.json
+!outputs/drifting/timing_summary.csv
+!outputs/evaluation/
+!outputs/eda/
+
+# ── Model checkpoints (large — optional to track) ───────────────────────────────
+# Comment out these lines if you want to commit trained models to the repo.
+outputs/ctgan/*.pkl
+outputs/tabddpm/*.pt
+outputs/drifting/*.pt
+
+# ── Docs — local only ────────────────────────────────────────────────────────────
+*.pdf
+CLAUDE.md
+
+# ── OS / IDE ─────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

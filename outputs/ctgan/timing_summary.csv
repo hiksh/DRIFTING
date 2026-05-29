@@ -1,0 +1,7 @@
+scaler,class,n_train,n_generated,train_time_sec,gen_time_sec,output_shape
+standard,bot,1360,1360,118.89,0.3438,"[1360, 70]"
+standard,brute_force,1062,1062,69.35,0.8097,"[1062, 70]"
+standard,xss,436,436,58.38,0.8446,"[436, 70]"
+robust,bot,1360,1360,113.99,0.8762,"[1360, 70]"
+robust,brute_force,1062,1062,117.87,0.665,"[1062, 70]"
+robust,xss,436,436,47.21,0.6216,"[436, 70]"

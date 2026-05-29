@@ -1,0 +1,86 @@
+[
+  {
+    "scaler": "standard",
+    "class": "bot",
+    "n_train": 1360,
+    "n_generated": 1360,
+    "train_time_sec": 1043.88,
+    "gen_time_sec": 36.45,
+    "final_loss": 0.007412,
+    "output_shape": [
+      1360,
+      70
+    ],
+    "model_params": 2506310
+  },
+  {
+    "scaler": "standard",
+    "class": "brute_force",
+    "n_train": 1062,
+    "n_generated": 1062,
+    "train_time_sec": 905.15,
+    "gen_time_sec": 33.99,
+    "final_loss": 0.003679,
+    "output_shape": [
+      1062,
+      70
+    ],
+    "model_params": 2506310
+  },
+  {
+    "scaler": "standard",
+    "class": "xss",
+    "n_train": 436,
+    "n_generated": 436,
+    "train_time_sec": 374.03,
+    "gen_time_sec": 15.14,
+    "final_loss": 0.002353,
+    "output_shape": [
+      436,
+      70
+    ],
+    "model_params": 2506310
+  },
+  {
+    "scaler": "robust",
+    "class": "bot",
+    "n_train": 1360,
+    "n_generated": 1360,
+    "train_time_sec": 1054.01,
+    "gen_time_sec": 38.73,
+    "final_loss": 0.010251,
+    "output_shape": [
+      1360,
+      70
+    ],
+    "model_params": 2506310
+  },
+  {
+    "scaler": "robust",
+    "class": "brute_force",
+    "n_train": 1062,
+    "n_generated": 1062,
+    "train_time_sec": 882.26,
+    "gen_time_sec": 30.97,
+    "final_loss": 0.003747,
+    "output_shape": [
+      1062,
+      70
+    ],
+    "model_params": 2506310
+  },
+  {
+    "scaler": "robust",
+    "class": "xss",
+    "n_train": 436,
+    "n_generated": 436,
+    "train_time_sec": 335.89,
+    "gen_time_sec": 14.86,
+    "final_loss": 0.001582,
+    "output_shape": [
+      436,
+      70
+    ],
+    "model_params": 2506310
+  }
+]

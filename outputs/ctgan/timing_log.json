@@ -1,0 +1,74 @@
+[
+  {
+    "scaler": "standard",
+    "class": "bot",
+    "n_train": 1360,
+    "n_generated": 1360,
+    "train_time_sec": 118.89,
+    "gen_time_sec": 0.3438,
+    "output_shape": [
+      1360,
+      70
+    ]
+  },
+  {
+    "scaler": "standard",
+    "class": "brute_force",
+    "n_train": 1062,
+    "n_generated": 1062,
+    "train_time_sec": 69.35,
+    "gen_time_sec": 0.8097,
+    "output_shape": [
+      1062,
+      70
+    ]
+  },
+  {
+    "scaler": "standard",
+    "class": "xss",
+    "n_train": 436,
+    "n_generated": 436,
+    "train_time_sec": 58.38,
+    "gen_time_sec": 0.8446,
+    "output_shape": [
+      436,
+      70
+    ]
+  },
+  {
+    "scaler": "robust",
+    "class": "bot",
+    "n_train": 1360,
+    "n_generated": 1360,
+    "train_time_sec": 113.99,
+    "gen_time_sec": 0.8762,
+    "output_shape": [
+      1360,
+      70
+    ]
+  },
+  {
+    "scaler": "robust",
+    "class": "brute_force",
+    "n_train": 1062,
+    "n_generated": 1062,
+    "train_time_sec": 117.87,
+    "gen_time_sec": 0.665,
+    "output_shape": [
+      1062,
+      70
+    ]
+  },
+  {
+    "scaler": "robust",
+    "class": "xss",
+    "n_train": 436,
+    "n_generated": 436,
+    "train_time_sec": 47.21,
+    "gen_time_sec": 0.6216,
+    "output_shape": [
+      436,
+      70
+    ]
+  }
+]

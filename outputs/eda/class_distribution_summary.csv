@@ -1,0 +1,16 @@
+class,train_count,train_pct,test_count,test_pct
+benign,1589610,80.315,681710,80.329
+bot,1360,0.069,596,0.07
+brute force,1062,0.054,445,0.052
+ddos,89739,4.534,38286,4.511
+dos goldeneye,7311,0.369,2982,0.351
+dos hulk,161170,8.143,68954,8.125
+dos slowhttptest,3822,0.193,1677,0.198
+dos slowloris,4069,0.206,1727,0.204
+ftp-patator,5538,0.28,2397,0.282
+heartbleed,6,0.0,5,0.001
+infiltration,26,0.001,10,0.001
+portscan,110987,5.608,47817,5.634
+sql injection,17,0.001,4,0.0
+ssh-patator,4076,0.206,1821,0.215
+xss,436,0.022,216,0.025

@@ -1,0 +1,10 @@
+numpy==2.4.3
+pandas==2.3.3
+scikit-learn==1.8.0
+matplotlib==3.10.8
+scipy==1.17.1
+torch==2.11.0
+sdv==1.36.3
+ctgan==0.12.1
+tqdm==4.67.3
+kagglehub==1.0.0
