@@ -1,115 +1,114 @@
-# Generative Modeling via Drifting for Tabular NIDS Data
+# 테이블형 NIDS 데이터를 위한 Drifting 기반 생성 모델
 
-Applying the **Drifting Models** framework (arXiv:2602.04770) to the class-imbalance problem in Network Intrusion Detection Systems (NIDS), evaluated on CICIDS2017.
+**Drifting Models** 프레임워크(arXiv:2602.04770)를 네트워크 침입 탐지 시스템(NIDS)의 클래스 불균형 문제에 적용하고, CICIDS2017 데이터셋으로 검증한 연구입니다.
 
 ---
 
-## 1. Background and Motivation
+## 1. 연구 배경 및 동기
 
-Network intrusion detection datasets suffer from severe class imbalance: benign traffic dominates by orders of magnitude, while rare but critical attack classes provide too few samples for reliable classifier training. In CICIDS2017, the three target minority classes account for fewer than 0.2% of all flows:
+네트워크 침입 탐지 데이터셋은 극심한 클래스 불균형을 가집니다. 정상(benign) 트래픽이 압도적으로 많은 반면, 드물지만 중요한 공격 클래스는 분류기 학습에 충분한 샘플을 제공하지 못합니다. CICIDS2017에서 세 가지 타깃 소수 클래스는 전체 플로우의 0.2% 미만을 차지합니다.
 
-| Class | Train samples | Train % |
+| 클래스 | 학습 샘플 수 | 비율 |
 |---|---:|---:|
 | benign | 1,589,610 | 80.32% |
 | bot | 1,360 | 0.069% |
 | brute force | 1,062 | 0.054% |
 | xss | 436 | 0.022% |
 
-Standard oversampling (SMOTE, random duplication) generates interpolated or repeated samples that do not reflect the true underlying distribution, limiting downstream classifier generalisation.
-Generative models offer a principled alternative, but their effectiveness on tabular network flow data — with extreme imbalance, near-constant features, and heavy-tailed distributions — remains underexplored.
+SMOTE, 무작위 복제 등의 표준 오버샘플링은 실제 분포를 반영하지 못하는 보간 샘플을 생성하여 분류기의 일반화 성능을 제한합니다. 생성 모델은 원칙적인 대안을 제시하지만, 극단적인 불균형·준상수 피처·중꼬리 분포를 가진 테이블형 네트워크 플로우 데이터에서의 효과는 충분히 연구되지 않았습니다.
 
 ---
 
-## 2. Proposed Approach: Drifting Models on Tabular NIDS Data
+## 2. 제안 방법: 테이블형 NIDS 데이터에의 Drifting Models 적용
 
 ### 2.1 Drifting Field
 
-Following arXiv:2602.04770, a vector field **V** is defined over the generated sample space:
+arXiv:2602.04770을 따라, 생성 샘플 공간 위에 벡터 필드 **V**를 정의합니다.
 
 ```
 V(x) = α · V⁺(x)  −  β · V⁻(x)
 ```
 
-| Component | Role | Formula |
+| 구성 요소 | 역할 | 수식 |
 |---|---|---|
-| **V⁺** (attraction) | Pulls generated samples toward real data | Kernel-weighted mean-shift: `Σ K(x, xᵢ)·xᵢ / Σ K(x, xᵢ)  − x` |
-| **V⁻** (repulsion) | Pushes generated samples away from each other | `x  −  Σ K(x, yⱼ)·yⱼ / Σ K(x, yⱼ)` (diagonal masked) |
+| **V⁺** (인력) | 생성 샘플을 실제 데이터 쪽으로 당김 | 커널 가중 평균 이동: `Σ K(x, xᵢ)·xᵢ / Σ K(x, xᵢ)  − x` |
+| **V⁻** (척력) | 생성 샘플끼리 서로 밀어냄 | `x  −  Σ K(x, yⱼ)·yⱼ / Σ K(x, yⱼ)` (대각 마스킹) |
 
-**Kernel:** RBF — `K(x, y) = exp(−‖x − y‖² / h)`
+**커널:** RBF — `K(x, y) = exp(−‖x − y‖² / h)`
 
-**Bandwidth:** 75th percentile of nonzero pairwise squared distances on training data (class-specific, more robust than median for tight clusters found in brute_force and xss).
+**대역폭 h:** 학습 데이터의 0이 아닌 쌍별 제곱 거리의 75번째 백분위수 (클래스별 산출, brute_force·xss의 밀집 군집에서 중앙값보다 안정적).
 
-### 2.2 Training Objective
+### 2.2 학습 목적함수
 
 ```
 L(θ) = E_ε [ ‖ fθ(ε)  −  sg( fθ(ε) + V(fθ(ε)) ) ‖² ]
 ```
 
-where `sg(·)` denotes stop-gradient. The gradient pushes `fθ(ε)` in the direction of **V**, encouraging generated samples to settle at the intersection of real-data density modes (via **V⁺**) and diversity-preserving repulsion (via **V⁻**).
+`sg(·)`는 stop-gradient를 나타냅니다. 경사는 `fθ(ε)`를 **V** 방향으로 밀어, 생성 샘플이 실제 데이터 밀도 모드(**V⁺**)와 다양성 보존 척력(**V⁻**)의 교차점에 위치하도록 유도합니다.
 
-### 2.3 Generator Architecture
+### 2.3 생성기 구조
 
-A lightweight MLP mapping noise to feature space:
+노이즈를 피처 공간으로 매핑하는 경량 MLP:
 
 ```
 z ~ N(0, I₇₀)  →  Linear(70→256) → SiLU → ×2 → Linear(256→70)
 ```
 
-| Hyperparameter | Value |
+| 하이퍼파라미터 | 값 |
 |---|---|
-| Hidden dim | 256 |
-| Layers | 3 |
-| Parameters | 167,750 |
-| Epochs | 3,000 |
-| Optimizer | Adam + CosineAnnealingLR (lr=1e-3) |
-| Attraction α / Repulsion β | 1.0 / 1.0 |
+| 은닉층 차원 | 256 |
+| 레이어 수 | 3 |
+| 파라미터 수 | 167,750 |
+| 에폭 | 3,000 |
+| 옵티마이저 | Adam + CosineAnnealingLR (lr=1e-3) |
+| 인력 α / 척력 β | 1.0 / 1.0 |
 
 ---
 
-## 3. Experimental Setup
+## 3. 실험 설정
 
-### 3.1 Dataset — CICIDS2017
+### 3.1 데이터셋 — CICIDS2017
 
-| Split | Rows | Features |
+| 분할 | 샘플 수 | 피처 수 |
 |---|---:|---:|
-| Train | 1,979,229 | 70 (after removing 8 zero-variance features) |
+| Train | 1,979,229 | 70 (분산=0인 피처 8개 제거 후) |
 | Test | 848,647 | 70 |
 
-Preprocessing: StandardScaler fitted on train; test transformed with the same scaler. 8 zero-variance features (`bwd psh flags`, bulk-rate features) removed prior to scaling. Within the three target classes, an additional 20 features have zero within-class variance.
+전처리: StandardScaler를 학습 데이터로 피팅 후 테스트에 동일 적용. 분산=0인 피처(`bwd psh flags`, 벌크 전송률 관련 피처) 8개를 스케일링 전에 제거. 세 타깃 클래스 내에서 추가로 20개 피처가 클래스 내 분산=0.
 
-### 3.2 Baseline Generative Models
+### 3.2 비교 생성 모델 (Baseline)
 
-| Model | Library / Implementation | Epochs | Parameters | Train time (3 classes) |
+| 모델 | 구현 | 에폭 | 파라미터 수 | 학습 시간 (3 클래스) |
 |---|---|---:|---:|---:|
-| **CTGAN** | SDV 1.36 (`CTGANSynthesizer`) | 300 | — | ~9 min |
-| **TabDDPM** | Custom PyTorch (Gaussian DDPM) | 5,000 | 2,506,310 | ~76 min |
-| **Drifting** | Custom PyTorch (this work) | 3,000 | 167,750 | ~3 min |
+| **CTGAN** | SDV 1.36 (`CTGANSynthesizer`) | 300 | — | ~9분 |
+| **TabDDPM** | 직접 구현 PyTorch (Gaussian DDPM) | 5,000 | 2,506,310 | ~76분 |
+| **Drifting** | 직접 구현 PyTorch (본 연구) | 3,000 | 167,750 | ~3분 |
 
-TabDDPM architecture: sinusoidal time embedding + 4 residual MLP blocks (hidden=512), T=1000 linear noise schedule, DDPM ancestral sampling.
+TabDDPM 구조: 정현파 시간 임베딩 + 잔차 MLP 블록 4개 (hidden=512), T=1000 선형 노이즈 스케줄, DDPM 조상 샘플링.
 
-### 3.3 Evaluation Protocol
+### 3.3 평가 프로토콜
 
-**Fidelity** (distribution quality, computed once per model):
-- Per-feature KS statistic: `ks_2samp(X_real[:, j], X_synth[:, j])` for each of 70 features → report mean, max, 90th percentile
-- Correlation fidelity: Frobenius norm `‖corr_real − corr_synth‖_F` (active features only)
+**Fidelity** (분포 품질, 모델당 1회 산출):
+- 피처별 KS 통계량: 70개 피처 각각에 대해 `ks_2samp(X_real[:, j], X_synth[:, j])` → 평균·최대·90번째 백분위수 보고
+- 상관 충실도: Frobenius 노름 `‖corr_real − corr_synth‖_F` (활성 피처만 사용)
 
-**Utility** (downstream classification, 5-seed repeated experiment):
-- Random Forest classifier (`n_estimators=100`, `class_weight=balanced`)
-- Train set: 50,000 benign (subsampled) + all minority class samples ± synthetic augmentation
-- Test set: full held-out split (682,967 samples)
-- Metric: F1 delta = F1(augmented) − F1(baseline), reported as mean ± std over 5 seeds
+**Utility** (하위 분류 성능, 5-seed 반복 실험):
+- Random Forest 분류기 (`n_estimators=100`, `class_weight=balanced`)
+- 학습 세트: benign 50,000개(서브샘플) + 전체 소수 클래스 ± 합성 증강
+- 테스트 세트: 전체 홀드아웃 분할 (682,967개)
+- 지표: F1 delta = F1(증강) − F1(베이스라인), 5 seeds에 대한 mean ± std
 
-**Augmentation ratio experiment** (CTGAN and Drifting only):
-- Ratios x1, x3, x5 relative to original class count
-- Same 5-seed protocol as above
+**증강 비율 실험** (CTGAN, Drifting만):
+- 원본 클래스 수 대비 x1, x3, x5 비율
+- 동일한 5-seed 프로토콜 적용
 
 ---
 
-## 4. Results
+## 4. 실험 결과
 
-### 4.1 Baseline F1 (No Augmentation)
+### 4.1 베이스라인 F1 (증강 없음)
 
-| Class | Baseline F1 (mean ± std, 5 seeds) |
+| 클래스 | 베이스라인 F1 (mean ± std, 5 seeds) |
 |---|---|
 | bot | 0.668 ± 0.032 |
 | brute_force | 0.721 ± 0.009 |
@@ -117,9 +116,9 @@ TabDDPM architecture: sinusoidal time embedding + 4 residual MLP blocks (hidden=
 
 ### 4.2 Fidelity
 
-Lower is better. Computed on standard-scaled data (x1 synthetic samples).
+낮을수록 좋음. Standard 스케일 데이터 기준 (합성 샘플 x1).
 
-| Model | Class | KS mean ↓ | KS max ↓ | KS p90 ↓ | Corr Frob ↓ |
+| 모델 | 클래스 | KS 평균 ↓ | KS 최대 ↓ | KS p90 ↓ | Corr Frob ↓ |
 |---|---|---:|---:|---:|---:|
 | CTGAN | bot | **0.360** | 0.841 | 0.591 | 29.67 |
 | CTGAN | brute_force | **0.312** | 0.791 | 0.666 | 30.49 |
@@ -131,9 +130,9 @@ Lower is better. Computed on standard-scaled data (x1 synthetic samples).
 | Drifting | brute_force | 0.740 | 0.907 | 0.906 | 41.11 |
 | Drifting | xss | 0.632 | 0.968 | 0.959 | 54.21 |
 
-### 4.3 Utility — F1 Delta (x1 augmentation, mean ± std over 5 seeds)
+### 4.3 Utility — F1 Delta (x1 증강, 5 seeds mean ± std)
 
-| Model | bot | brute_force | xss |
+| 모델 | bot | brute_force | xss |
 |---|---|---|---|
 | CTGAN | +0.0499 ± 0.0406 | +0.0210 ± 0.0088 | +0.0221 ± 0.0201 |
 | TabDDPM | +0.0212 ± 0.0496 | +0.0176 ± 0.0069 | −0.0037 ± 0.0172 |
@@ -141,15 +140,15 @@ Lower is better. Computed on standard-scaled data (x1 synthetic samples).
 
 Recall delta (x1):
 
-| Model | bot | brute_force | xss |
+| 모델 | bot | brute_force | xss |
 |---|---|---|---|
 | CTGAN | −0.003 ± 0.003 | +0.021 ± 0.015 | −0.053 ± 0.025 |
 | TabDDPM | −0.003 ± 0.003 | +0.036 ± 0.015 | −0.093 ± 0.035 |
 | **Drifting** | −0.002 ± 0.003 | +0.003 ± 0.009 | −0.014 ± 0.035 |
 
-### 4.4 Augmentation Ratio Experiment — F1 Delta (CTGAN vs Drifting, mean ± std, 5 seeds)
+### 4.4 증강 비율 실험 — F1 Delta (CTGAN vs Drifting, 5 seeds mean ± std)
 
-| Class | Model | x1 | x3 | x5 |
+| 클래스 | 모델 | x1 | x3 | x5 |
 |---|---|---|---|---|
 | bot | CTGAN | +0.050 ± 0.041 | +0.078 ± 0.045 | +0.085 ± 0.036 |
 | bot | **Drifting** | +0.026 ± 0.040 | +0.051 ± 0.031 | **+0.092 ± 0.036** |
@@ -160,68 +159,68 @@ Recall delta (x1):
 
 ---
 
-## 5. Key Findings
+## 5. 핵심 발견
 
-### Finding 1 — Fidelity-Utility Inversion
+### 발견 1 — Fidelity-Utility 역전 현상
 
-The model with the **worst distributional fidelity** (Drifting; KS mean 0.63–0.74) achieves the **strongest utility** for the hardest class (xss, +0.030 F1 at x1, +0.067 at x3/x5). Conversely, CTGAN produces samples closest to the real marginal distributions yet yields smaller improvements for xss. This suggests that for extreme minority classes, the ability to generate *diverse, boundary-informative* samples matters more than faithfully replicating the empirical feature distributions. The Drifting repulsion term **V⁻** actively discourages mode collapse, which likely drives this diversity.
+**분포 충실도가 가장 낮은** 모델(Drifting; KS 평균 0.63–0.74)이 가장 어려운 클래스(xss)에서 **가장 높은 유용성**을 달성합니다(x1: +0.030 F1, x3/x5: +0.067). 반면 CTGAN은 실제 주변 분포에 가장 가까운 샘플을 생성하지만 xss에서는 더 작은 개선만을 보입니다. 이는 극단적인 소수 클래스에서 경험적 피처 분포를 충실히 복제하는 것보다 **다양하고 결정 경계에 유익한 샘플을 생성하는 능력**이 더 중요함을 시사합니다. Drifting의 척력 항 **V⁻**이 모드 붕괴를 적극적으로 억제하여 이러한 다양성을 이끌어냅니다.
 
-### Finding 2 — Drifting Scales Better with More Samples (xss)
+### 발견 2 — Drifting의 샘플 수 증가 대응력 우위 (xss)
 
-For xss (436 training samples, the most data-scarce class), Drifting's F1 delta increases sharply from +0.030 (x1) to +0.066 (x3) and plateaus at +0.067 (x5), indicating **saturation near x3**. CTGAN also improves with ratio but reaches only +0.047 at x5. At x5, Drifting achieves an absolute F1 of **0.496** vs. CTGAN's **0.476** and a baseline of **0.429**, representing a 15.8% relative improvement. The xss recall delta also turns positive for Drifting at x3/x5 (+0.019/+0.020) while CTGAN's xss recall remains negative at all ratios.
+xss(학습 샘플 436개, 데이터가 가장 부족한 클래스)에서 Drifting의 F1 delta는 +0.030(x1)에서 +0.066(x3)으로 급격히 증가한 후 +0.067(x5)에서 포화합니다(**x3 근방에서 포화**). CTGAN도 비율과 함께 개선되지만 x5에서 +0.047에 그칩니다. x5 기준으로 Drifting은 절대 F1 **0.496**을 달성하며, CTGAN의 0.476, 베이스라인 0.429 대비 15.8%의 상대적 개선을 나타냅니다. xss recall delta도 Drifting에서 x3/x5에서 양수(+0.019/+0.020)로 전환되는 반면 CTGAN은 모든 비율에서 음수를 유지합니다.
 
-### Finding 3 — brute_force Resists Augmentation
+### 발견 3 — brute_force의 증강 저항성
 
-Neither model substantially improves brute_force F1 beyond +0.026 at x5, and both show near-zero sensitivity to ratio (CTGAN: +0.021/+0.023/+0.026; Drifting: +0.014/+0.011/+0.013). Brute_force has 20 within-class zero-variance features after scaling, suggesting a highly constrained feature subspace. Synthetic samples from both models may faithfully reproduce this constrained geometry without adding information orthogonal to what the classifier already learns from 1,062 real samples.
+어떤 모델도 x5에서 brute_force F1을 +0.026 이상 개선하지 못하며, 두 모델 모두 비율에 대한 민감도가 거의 없습니다(CTGAN: +0.021/+0.023/+0.026; Drifting: +0.014/+0.011/+0.013). brute_force는 스케일링 후 클래스 내 분산=0인 피처가 20개에 달해, 피처 공간이 고도로 제한된 서브공간임을 시사합니다. 두 모델의 합성 샘플 모두 이 제한된 구조를 충실히 재현하지만, 분류기가 1,062개의 실제 샘플로부터 이미 학습하는 것과 직교하는 정보를 추가하지 못할 가능성이 높습니다.
 
 ---
 
-## 6. Computational Cost
+## 6. 계산 비용
 
-| Model | Train per class (std) | Total (3 classes) | Generation (x1) |
+| 모델 | 클래스당 학습 시간 (standard) | 전체 (3 클래스) | 생성 시간 (x1) |
 |---|---:|---:|---:|
-| CTGAN | ~82 s | ~9 min | ~0.7 s |
-| TabDDPM | ~774 s | ~39 min | ~29 s |
-| **Drifting** | **~31 s** | **~3 min** | **<0.01 s** |
+| CTGAN | ~82초 | ~9분 | ~0.7초 |
+| TabDDPM | ~774초 | ~39분 | ~29초 |
+| **Drifting** | **~31초** | **~3분** | **<0.01초** |
 
-Drifting is **~25× faster** to train than TabDDPM and **~2.6× faster** than CTGAN, while achieving competitive or superior downstream utility.
-
----
-
-## 7. Next Steps
-
-- **Multi-dataset validation** on UNSW-NB15, NSL-KDD, and CICIoT2023 to assess generalisation across different traffic distributions and feature spaces.
-- **Bandwidth sensitivity analysis** — the 75th-percentile heuristic works well for standard-scaled data but degrades under RobustScaler (robust/bot: h = 107,721, loss = 0.13). Learnable or cross-validated bandwidth selection is warranted.
-- **Conditional generation** — extend the Drifting field to support class-conditional generation, enabling joint training across all minority classes rather than one model per class.
-- **Evaluation beyond RF** — test augmented training with gradient-boosted trees (XGBoost/LightGBM) and deep NIDS classifiers to verify that utility gains are architecture-agnostic.
-- **Comparison with SMOTE variants** (BorderlineSMOTE, ADASYN) as additional baselines.
+Drifting은 TabDDPM 대비 **~25배**, CTGAN 대비 **~2.6배** 빠르게 학습하면서 동등하거나 우수한 하위 유용성을 달성합니다.
 
 ---
 
-## 8. Repository Structure
+## 7. 향후 연구 방향
+
+- **다중 데이터셋 검증** — UNSW-NB15, NSL-KDD, CICIoT2023에서 다양한 트래픽 분포·피처 공간에 대한 일반화 평가
+- **대역폭 선택 개선** — 75번째 백분위수 휴리스틱은 standard 스케일 데이터에서는 잘 동작하지만 RobustScaler에서는 저하(robust/bot: h = 107,721, loss = 0.13). 학습 가능하거나 교차 검증 기반의 대역폭 선택 필요
+- **조건부 생성** — Drifting field를 클래스 조건부 생성으로 확장하여 클래스별 개별 학습 대신 통합 모델로 전환
+- **RF 이외의 평가** — XGBoost/LightGBM 및 딥러닝 NIDS 분류기로 유용성 향상이 아키텍처 독립적인지 검증
+- **SMOTE 변형과의 비교** — BorderlineSMOTE, ADASYN을 추가 베이스라인으로 포함
+
+---
+
+## 8. 저장소 구조
 
 ```
 .
-├── cicids2017/              # Raw CICIDS2017 CSV files
-├── data/processed/          # Preprocessed NumPy arrays (scaled, class-split)
+├── cicids2017/              # CICIDS2017 원본 CSV 파일
+├── data/processed/          # 전처리된 NumPy 배열 (스케일링, 클래스별 분리)
 ├── outputs/
-│   ├── ctgan/               # CTGAN models + synthetic samples
-│   ├── tabddpm/             # TabDDPM models + synthetic samples
-│   ├── drifting/            # Drifting models + synthetic samples
-│   ├── evaluation/          # Fidelity + utility results (5-seed)
-│   └── ratio_experiment/    # x1/x3/x5 augmentation ratio comparison
-├── 01_eda.py                # Class distribution + feature analysis
-├── 02_preprocess.py         # Feature selection, scaling, class filtering
-├── 03_ctgan_baseline.py     # CTGAN training + generation
-├── 04_tabddpm_baseline.py   # TabDDPM (custom PyTorch) training + generation
-├── 05_drifting.py           # Drifting Models training + generation
-├── 06_evaluate.py           # Fidelity + utility pipeline (5-seed RF)
-└── 07_ratio_experiment.py   # x3/x5 generation + ratio comparison
+│   ├── ctgan/               # CTGAN 모델 + 합성 샘플
+│   ├── tabddpm/             # TabDDPM 모델 + 합성 샘플
+│   ├── drifting/            # Drifting 모델 + 합성 샘플
+│   ├── evaluation/          # Fidelity + Utility 결과 (5-seed)
+│   └── ratio_experiment/    # x1/x3/x5 증강 비율 비교
+├── 01_eda.py                # 클래스 분포 + 피처 분석
+├── 02_preprocess.py         # 피처 선택, 스케일링, 클래스 필터링
+├── 03_ctgan_baseline.py     # CTGAN 학습 + 생성
+├── 04_tabddpm_baseline.py   # TabDDPM (직접 구현 PyTorch) 학습 + 생성
+├── 05_drifting.py           # Drifting Models 학습 + 생성
+├── 06_evaluate.py           # Fidelity + Utility 평가 파이프라인 (5-seed RF)
+└── 07_ratio_experiment.py   # x3/x5 생성 + 비율 비교
 ```
 
 ---
 
-## References
+## 참고문헌
 
 - Kotelnikov, A., et al. "TabDDPM: Modelling Tabular Data with Diffusion Models." *ICML 2023*.
 - Xu, L., et al. "Modeling Tabular Data using Conditional GAN." *NeurIPS 2019*.
