@@ -1,0 +1,29 @@
+[
+  {
+    "class": "backdoor",
+    "n_train": 1746,
+    "n_generated": 1746,
+    "bandwidth_h": 40.809,
+    "train_time_sec": 117.78,
+    "gen_time_sec": 0.0101,
+    "final_loss": 0.000169
+  },
+  {
+    "class": "shellcode",
+    "n_train": 1133,
+    "n_generated": 1133,
+    "bandwidth_h": 34.1882,
+    "train_time_sec": 134.21,
+    "gen_time_sec": 0.0061,
+    "final_loss": 7.1e-05
+  },
+  {
+    "class": "worms",
+    "n_train": 130,
+    "n_generated": 130,
+    "bandwidth_h": 87.7888,
+    "train_time_sec": 116.54,
+    "gen_time_sec": 0.0059,
+    "final_loss": 7e-06
+  }
+]

@@ -1,0 +1,10 @@
+model,class,ks_mean,ks_max,ks_p90,corr_frob
+CTGAN,backdoor,0.0699,0.6884,0.2864,13.156
+CTGAN,shellcode,0.0467,0.5719,0.2396,17.3151
+CTGAN,worms,0.0735,0.7077,0.3962,13.6745
+TabDDPM,backdoor,0.5022,0.6037,0.5493,7.8103
+TabDDPM,shellcode,0.4885,0.6364,0.549,5.2655
+TabDDPM,worms,0.5142,0.6538,0.6,5.8825
+Drifting,backdoor,0.9461,0.9977,0.9977,146.3761
+Drifting,shellcode,0.9311,1.0,1.0,34.5281
+Drifting,worms,0.5738,0.9538,0.8308,37.3712

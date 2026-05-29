@@ -1,0 +1,4 @@
+class,n_train,n_generated,train_time_sec,gen_time_sec,final_loss
+backdoor,1746,1746,1655.64,52.18,0.014373
+shellcode,1133,1133,987.45,34.48,0.005757
+worms,130,130,146.91,5.7,0.014982

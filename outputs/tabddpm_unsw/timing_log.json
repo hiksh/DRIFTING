@@ -1,0 +1,26 @@
+[
+  {
+    "class": "backdoor",
+    "n_train": 1746,
+    "n_generated": 1746,
+    "train_time_sec": 1655.64,
+    "gen_time_sec": 52.18,
+    "final_loss": 0.014373
+  },
+  {
+    "class": "shellcode",
+    "n_train": 1133,
+    "n_generated": 1133,
+    "train_time_sec": 987.45,
+    "gen_time_sec": 34.48,
+    "final_loss": 0.005757
+  },
+  {
+    "class": "worms",
+    "n_train": 130,
+    "n_generated": 130,
+    "train_time_sec": 146.91,
+    "gen_time_sec": 5.7,
+    "final_loss": 0.014982
+  }
+]

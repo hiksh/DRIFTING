@@ -1,0 +1,11 @@
+attack_name,train_count,train_pct,test_count,test_pct
+Analysis,2000,1.141,677,0.822
+Backdoor,1746,0.996,583,0.708
+DoS,12264,6.994,4089,4.966
+Exploits,33393,19.045,11132,13.521
+Fuzzers,18184,10.371,6062,7.363
+Generic,40000,22.813,18871,22.921
+Normal,56000,31.938,37000,44.94
+Reconnaissance,10491,5.983,3496,4.246
+Shellcode,1133,0.646,378,0.459
+Worms,130,0.074,44,0.053
