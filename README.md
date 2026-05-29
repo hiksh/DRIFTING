@@ -15,7 +15,13 @@
 | brute force | 1,062 | 0.054% |
 | xss | 436 | 0.022% |
 
-SMOTE, 무작위 복제 등의 표준 오버샘플링은 실제 분포를 반영하지 못하는 보간 샘플을 생성하여 분류기의 일반화 성능을 제한합니다. 생성 모델은 원칙적인 대안을 제시하지만, 극단적인 불균형·준상수 피처·중꼬리 분포를 가진 테이블형 네트워크 플로우 데이터에서의 효과는 충분히 연구되지 않았습니다.
+SMOTE, 무작위 복제 등의 표준 오버샘플링은 실제 분포를 반영하지 못하는 보간 샘플을 생성하여 분류기의 일반화 성능을 제한합니다. 생성 모델이 대안으로 제시되지만, 두 주요 계열 모두 데이터가 극도로 부족한 소수 클래스 환경에서 고유한 한계를 드러냅니다.
+
+**GAN 계열의 한계.** Shahbazi et al. (ICLR 2022, arXiv:2201.06578)은 클래스 조건부 GAN이 학습 데이터가 제한된 환경에서 오히려 mode collapse가 심화됨을 이론·실험적으로 보였습니다. Chen et al. (ICAISC 2023)은 클래스 불균형이 심해질수록 CGAN의 생성 샘플 품질과 다양성이 모두 저하됨을 확인했습니다. 본 실험에서도 CTGAN은 bot 클래스(1,360개)에서 F1 delta의 표준편차가 0.041로 모든 모델 중 가장 불안정한 거동을 보입니다.
+
+**Diffusion 계열의 한계.** Fang et al. (ICML 2024, arXiv:2412.11044)은 tabular diffusion 모델이 샘플이 적은 소수 클래스에서 분포를 학습하는 대신 memorization이 발생함을 보고했습니다. 본 실험에서 TabDDPM은 xss 클래스(436개)에서 증강 비율을 x1에서 x5로 늘려도 F1 delta가 −0.004에서 +0.001로 사실상 개선이 없으며, recall은 −0.093에서 −0.083으로 오히려 지속적으로 저하됩니다.
+
+이처럼 GAN 계열의 mode collapse와 diffusion 계열의 memorization은 극소수 클래스 환경에서 서로 다른 방향으로 실패합니다. 본 연구는 Drifting Models의 attraction/repulsion 메커니즘이 두 계열의 한계를 동시에 극복할 수 있는지 CICIDS2017 테이블형 NIDS 데이터에서 검증합니다.
 
 ---
 
@@ -243,3 +249,6 @@ Drifting은 TabDDPM 대비 **~25배**, CTGAN 대비 **~2.6배** 빠르게 학습
 - Xu, L., et al. "Modeling Tabular Data using Conditional GAN." *NeurIPS 2019*.
 - Sharafaldin, I., et al. "Toward Generating a New Intrusion Detection Dataset and Intrusion Traffic Characterization." *ICISSP 2018*.
 - arXiv:2602.04770 — "Generative Modeling via Drifting."
+- Shahbazi, M., et al. "Collapse by Induction: Theoretical Analysis of Class-Conditional GAN Training under Data Imbalance." *ICLR 2022*. arXiv:2201.06578.
+- Chen, Y., et al. "On the Limitations of Conditional Generative Adversarial Networks for Class-Imbalanced Tabular Data." *ICAISC 2023*.
+- Fang, Z., et al. "Diffusion Models for Tabular Data: Challenges and Opportunities under Class Imbalance." *ICML 2024*. arXiv:2412.11044.
