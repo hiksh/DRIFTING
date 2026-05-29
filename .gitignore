@@ -48,6 +48,7 @@ outputs/drifting/drifting_loss_*.npy
 !outputs/drifting/timing_summary.csv
 !outputs/evaluation/
 !outputs/eda/
+!outputs/ratio_experiment/
 
 # ── Model checkpoints (large — optional to track) ───────────────────────────────
 # Comment out these lines if you want to commit trained models to the repo.
